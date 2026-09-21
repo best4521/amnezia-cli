@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+
+# local state
+amnezia_users.db
+amnezia_users.db-wal
+amnezia_users.db-shm
+amnezia_cli.log*
+amnezia_cli.json
+*.conf
+!*.conf.example

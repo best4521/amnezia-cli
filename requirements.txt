@@ -1,0 +1,9 @@
+# Amnezia AWG2 Management CLI - runtime dependencies
+# Python 3.10+ required (sqlite3 ships with the standard library)
+
+click>=8.1,<9
+docker>=7.0
+qrcode>=7.4
+
+# Optional: needed only for `get-qr --png <file>` (PNG rendering)
+# pillow>=10.0

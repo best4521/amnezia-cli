@@ -1,0 +1,22 @@
+{
+  "container_name": "amnezia-awg",
+  "docker_base_url": null,
+  "server_dir": "/opt/amnezia/awg",
+  "interface": "wg0",
+  "config_filename": "wg0.conf",
+  "clients_table_filename": "clientsTable",
+  "server_pubkey_filename": "wireguard_server_public_key.key",
+
+  "endpoint_host": "auto",
+  "endpoint_port": 0,
+  "dns": "1.1.1.1, 1.0.0.1",
+  "client_allowed_ips": "0.0.0.0/0, ::/0",
+  "persistent_keepalive": 25,
+
+  "db_path": "amnezia_users.db",
+  "log_path": "amnezia_cli.log",
+  "log_max_bytes": 2000000,
+  "log_backup_count": 3,
+
+  "fake_backend": false
+}
