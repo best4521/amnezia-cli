@@ -84,7 +84,7 @@ amnezia_cli.py export-config alice -o alice.conf
 ## Install
 
 ```bash
-git clone <this repo> amnezia-cli && cd amnezia-cli
+git clone https://github.com/best4521/amnezia-cli.git && cd amnezia-cli
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
@@ -138,8 +138,12 @@ add the peer and reload the interface.
 ./amnezia_cli.py create-user alice
 ./amnezia_cli.py create-user bob --expires 2026-12-31 --note "contractor"
 ./amnezia_cli.py create-user carol --expires +90d --qr --show-config
+./amnezia_cli.py create-user dave --expires +30d --traffic-limit 50GB --json
 ```
 Usernames: 1–32 chars of `[A-Za-z0-9_.-]`, starting alphanumeric.
+`--json` emits the user record plus the ready-to-send client config in one
+object - meant for scripted callers (e.g. a Telegram bot creating users over
+SSH: `ssh root@host amnezia-cli create-user NAME --expires +30d --traffic-limit 50GB --json`).
 
 ### `list-users`
 ```bash
@@ -160,6 +164,25 @@ from the live interface immediately.
 ./amnezia_cli.py set-expiration alice never          # clear expiration
 ```
 Expired users are automatically excluded from the peer list on the next `sync`.
+
+### `set-traffic-limit <username> <value>`
+```bash
+./amnezia_cli.py set-traffic-limit alice 50GB
+./amnezia_cli.py set-traffic-limit alice unlimited
+```
+Sets a **lifetime** traffic cap (binary units: `1GB` = 1024³ bytes). A bare
+byte count also works. `unlimited`/`none`/`0` clears it.
+
+### `enforce-quotas`
+```bash
+./amnezia_cli.py enforce-quotas --json
+```
+Polls live `wg show transfer` counters, adds the delta to each user's
+cumulative usage, and disables anyone at or past their traffic cap. Also runs
+`sync`, so expired users get cut off the same call. Meant for cron:
+```
+*/5 * * * * /usr/local/bin/amnezia-cli enforce-quotas >> /opt/amnezia-cli/enforce-quotas.log 2>&1
+```
 
 ### `get-qr <username>`
 ```bash
@@ -227,12 +250,19 @@ CLI directly on the Amnezia host.
 
 ```bash
 # on the server
-sudo mkdir -p /opt/amnezia-cli && cd /opt/amnezia-cli
+sudo apt install -y python3-venv    # if missing (Debian/Ubuntu)
+git clone https://github.com/best4521/amnezia-cli.git /opt/amnezia-cli && cd /opt/amnezia-cli
 python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-cp amnezia_cli.json.example amnezia_cli.json      # edit endpoint_host if 'auto' is wrong
+cp amnezia_cli.json.example amnezia_cli.json
+# edit amnezia_cli.json: container_name / interface / config_filename must match
+# your container - check with `docker ps` and `docker exec <container> ip -o link show`
+# (AmneziaWG containers are often named amnezia-awg2 with interface awg0, not the
+# amnezia-awg/wg0 defaults)
 sudo .venv/bin/python amnezia_cli.py doctor
 sudo .venv/bin/python amnezia_cli.py create-user alice --expires +30d
 ```
+
+To pull later updates on any server: `cd /opt/amnezia-cli && git pull`.
 
 Optional wrapper at `/usr/local/bin/amnezia-cli`:
 
